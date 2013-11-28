@@ -1,12 +1,12 @@
 
 from schedule import Schedule
-import store
+import coordinator
+import config
 
-TIMEPERIOD = 5
 
 def start_monitoring():
-    sched = Schedule(TIMEPERIOD)
-    sched.schedule(store.monitorStore)
+    sched = Schedule(config.TIMEPERIOD)
+    sched.schedule(coordinator.monitorStore)
 
 def main():
     start_monitoring()

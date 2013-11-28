@@ -1,25 +1,14 @@
-from pylab import *
-from mpl_toolkits.mplot3d import Axes3D
+from plot import plot
 from sklearn import manifold, datasets
 import numpy
 import matplotlib.pyplot as plt
-import config
+import util
 
 import ast
 
 plt.ion()
 dynamic_all_values = []
-
-
-def scale(X):
-    for i in xrange(0,len(X[0])):
-        max_value = config.dimensions_range[i%config.number_vms]
-        new_list = abs(X[:,i])/max_value
-        print "new list: ", new_list
-        X[:,i] = ['%.2f' % elem for elem in new_list ]
-    print "Scaled values: ", X
-    return X
-
+violation_position = []
 
 def iso_map_static(all_values):
     """
@@ -35,7 +24,7 @@ def iso_map_static(all_values):
 
     #For all the dimensions normalise the value range between 0 and 1
     #use ceiling function to remove small noise
-    X = scale(X)
+    X = util.scale(X)
 
     for i in xrange(12,len(all_values)):
 
@@ -49,22 +38,23 @@ def iso_map_static(all_values):
         #Y = manifold.LocallyLinearEmbedding().fit_transform(X)
         old_values = Y[:-1]
         new_value = Y[-1:]
-        animated_plot(old_values, new_value)
+        plot.animated_plot(old_values, new_value)
 
 
 
-def iso_map_dynamic(current_value_list):
+def iso_map_dynamic(current_value_list, label):
 
     dynamic_all_values.append(current_value_list)
+
 
     if(len(dynamic_all_values) > 12):
 
         X = numpy.array(dynamic_all_values)
-        print "Actual Values: ",X
+      #  print "Actual Values: ",X
 
         #For all the dimensions normalise the value range between 0 and 1
         #use ceiling function to remove small noise
-        X = scale(X)
+        X = util.scale(X)
 
         #n_neighbors = 10
         #Y = manifold.Isomap(n_neighbors, 2, max_iter= 4000).fit_transform(X)
@@ -73,20 +63,14 @@ def iso_map_dynamic(current_value_list):
         #Y = manifold.LocallyLinearEmbedding().fit_transform(X)
         old_values = Y[:-1]
         new_value = Y[-1:]
-        animated_plot(old_values, new_value)
+        plot.animated_plot(old_values, new_value, violation_position)
 
+    # Append the position of the violation only after plotting
+    # inorder to plot the current value as current point instead of a violation
+    if label:
+        violation_position.append(len(dynamic_all_values)-1)
+        print "Violation Position: ", violation_position
 
-
-def animated_plot(old_values, new_value):
-# 2D projection
-    #figure()
-    plt.clf()
-    plt.plot(old_values[:,0], old_values[:,1], 'x', markersize=10)
-    plt.plot(new_value[:,0], new_value[:,1], 'v', color = 'r', markersize=10)
-    #scatter(X[:,0], X[:,1])
-    plt.draw()
-    plt.pause(5)
-    #show()
 
 if __name__ == '__main__':
     #gtrace
