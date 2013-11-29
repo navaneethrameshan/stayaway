@@ -65,6 +65,7 @@ def iso_map_dynamic(current_value_list, label):
         new_value = Y[-1:]
         plot.animated_plot(old_values, new_value, violation_position)
 
+
     # Append the position of the violation only after plotting
     # inorder to plot the current value as current point instead of a violation
     if label:
