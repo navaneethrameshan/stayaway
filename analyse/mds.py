@@ -9,6 +9,7 @@ import ast
 plt.ion()
 dynamic_all_values = []
 violation_position = []
+closest_range_position = []
 
 def iso_map_static(all_values):
     """
@@ -42,7 +43,7 @@ def iso_map_static(all_values):
 
 
 
-def iso_map_dynamic(current_value_list, label):
+def iso_map_dynamic(current_value_list, label, transition, closest_monitor_range, action_status):
 
     dynamic_all_values.append(current_value_list)
 
@@ -63,14 +64,40 @@ def iso_map_dynamic(current_value_list, label):
         #Y = manifold.LocallyLinearEmbedding().fit_transform(X)
         old_values = Y[:-1]
         new_value = Y[-1:]
-        plot.animated_plot(old_values, new_value, violation_position)
+        plot.animated_plot(old_values, new_value, violation_position, action_status)
 
+    if closest_monitor_range:
+        closest_range_position.append(len(dynamic_all_values) -1)
+
+    # If transition, remove all the values until the closest_range_position
+    # remove matching violation_position. It is important to do this before violation position is included inorder to feed in the updated (correct)
+    # position of dynamic_values to violation_position.
+    if transition:
+        print "!!!!!!!!!!Transition detected!!!!!!!!!! "
+        print "Closest Range positions (before): " ,closest_range_position
+        print "Violation positions (before) ", violation_position
+        print "Length All Values (before): ", len(dynamic_all_values)
+
+        # reversed is important. Remove elements at the end first to avoid messing up index in subsequent deletions.
+        for position in reversed(xrange(closest_range_position[-2], closest_range_position[-1])):
+            print "Deleting element in position: ", position
+            del dynamic_all_values[position]
+            if position in violation_position:
+                violation_position.remove(position)
+
+        #closest_Range_position[-1] does not anymore hold the right position. update the position.
+        closest_range_position[-1] = closest_range_position[-1] - abs(closest_range_position[-2] - closest_range_position[-1])
+
+        print "Length All Values (after): ", len(dynamic_all_values)
+        print "Violation positions (after) ", violation_position
+        print "Closest Range positions (after): " ,closest_range_position
 
     # Append the position of the violation only after plotting
     # inorder to plot the current value as current point instead of a violation
     if label:
         violation_position.append(len(dynamic_all_values)-1)
         print "Violation Position: ", violation_position
+
 
 
 if __name__ == '__main__':

@@ -3,12 +3,14 @@ import numpy as np
 from analyse import distance
 from point import Point
 import config
+fig = plt.figure()
 
-def animated_plot(old_values, new_value, violation_position):
+def animated_plot(old_values, new_value, violation_position, action_status):
     violation_values = np.array([old_values[index] for index in violation_position])
     old_values = np.delete(old_values, violation_position, 0)
 
     #figure()
+    plt.ion()
     plt.clf()
     plt.plot(old_values[:,0], old_values[:,1], 'x', markersize=10)
     plt.plot(new_value[:,0], new_value[:,1], 'v', color = 'r', markersize=10)
@@ -25,8 +27,10 @@ def animated_plot(old_values, new_value, violation_position):
         add_circle(plt, violation_center, neighbour_center, dist)
 
     #scatter(X[:,0], X[:,1])
+    fig.suptitle('Action Status: '+ str(action_status))
+    plt.grid(True)
     plt.draw()
-    plt.pause(200)
+    plt.pause(1)
     #show()
 
 
@@ -47,4 +51,4 @@ if __name__ == '__main__':
     old_values = np.array([[0,1],[1,1], [5,5],[6,2], [0,0], [1,2], [2,1], [4,4], [10,10]])
     new_value = np.array([[3,1]])
     violation_position = [2,3]
-    animated_plot(old_values, new_value, violation_position)
+    animated_plot(old_values, new_value, violation_position, False)

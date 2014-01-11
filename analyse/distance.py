@@ -28,3 +28,18 @@ def find_nearest_neghbour(point1, numpyarray):
             nearest_neighbour = NN(point1,Point(value[0], value[1]),mindist)
 
     return nearest_neighbour
+
+def calculate_distance_list(list1, list2):
+    '''
+    list1 = [VM1 cpu, VM1 mem, VM2 cpu, VM2 mem, VM3 cpu, ..]
+    '''
+    dist = None
+    if len(list1) == len(list2):
+        sum = 0
+        for i in xrange(0,len(list1)):
+            sum += (list2[i]-list1[i])**2
+        dist = sum ** 0.5
+    else:
+        print "MISMATCH in distance calculation"
+
+    return dist

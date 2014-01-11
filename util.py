@@ -8,23 +8,33 @@ def scale(X):
         new_list = abs(X[:,i])/max_value
         #print "new list: ", new_list
         X[:,i] = ['%.2f' % elem for elem in new_list ]
-    print "Scaled values: ", X
+   # print "Scaled values: ", X
     return X
 
 def get_current_system_timestamp():
     timestamp = time.time()
     return timestamp
 
-def pause_process(pid):
-    p1 = Popen(['kill', '-STOP', pid], stdout= PIPE)
+def pause_process(process):
+    pid = get_pid(process)
+    if pid:
+        p1 = Popen(['kill', '-STOP', pid], stdout= PIPE)
 
-def continue_process(pid):
-    p1 = Popen(['kill', '-CONT', pid], stdout= PIPE)
+def continue_process(process):
+    pid= get_pid(process)
+    if pid:
+        p1 = Popen(['kill', '-CONT', pid], stdout= PIPE)
 
 def get_pid(process):
     fd = Popen(['ps', '-ef'], stdout = PIPE)
-    p = Popen(['grep', process ], stdin= fd.stdout, stdout = PIPE)
-    s = p.stdout.readline().split()
+    p1 = Popen(['grep', process ], stdin= fd.stdout, stdout = PIPE)
+    p2 = Popen(['grep', '-v', 'grep'], stdin= p1.stdout, stdout = PIPE)
+    s = p2.stdout.readline().split()
     if s:
         return s[1]
 
+if __name__ == '__main__' :
+    pid= get_pid('tunkrank')
+    print pid
+    pause_process('tunkrank')
+    continue_process('tunkrank')
