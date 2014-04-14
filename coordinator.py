@@ -4,10 +4,12 @@ from analyse import distance
 import util
 import config
 import os
+import vlc.qos
 
+learn_distance = 0.1
 previous_violation_label = False
 action_status = False
-previous_monitored_list = None
+previous_scaled_monitored_list = None
 
 def monitorStore(processing_time):
     """
@@ -18,6 +20,9 @@ def monitorStore(processing_time):
     send to mds
     """
    # commented to use psutil system info system_info = systeminfo.get_all_info()
+    global previous_scaled_monitored_list
+    global previous_violation_label
+    global learn_distance
 
     system_info = {}
 
@@ -34,6 +39,7 @@ def monitorStore(processing_time):
 
     if file_values and len(file_values) ==2 :
         application_timestamp, qos_metric = file_values
+        print "Total no. of Frames Encoded: ", qos_metric
 
    # print "Monitored Timestamp: ", monitored_timestamp
    # print "QoS Metric Timestamp: ", application_timestamp
@@ -44,28 +50,30 @@ def monitorStore(processing_time):
         closest_monitor_range = True
 
     if qos_metric:
-        violation_label = check_violation(qos_metric)
+        if config.latency_app is not 'vlc':
+            violation_label = check_violation(qos_metric)
+        else:
+            violation_label = vlc.qos.check_violation(qos_metric, application_timestamp)
 
 
     transition = check_transition(violation_label)
 
     # If an action has been taken, compare the measurement vectors to decide when to revoke the action
     if action_status:
-        global previous_monitored_list
-        if previous_monitored_list:
-            dist = distance.calculate_distance_list(current_monitored_list, previous_monitored_list)
+        scaled_monitored_list = util.scale_list(current_monitored_list)
+        if previous_scaled_monitored_list:
+            dist = distance.calculate_distance_list(scaled_monitored_list, previous_scaled_monitored_list)
             print "Distance: ", dist
-            if dist and dist > 0.3:
+            if dist and dist > learn_distance:
                 #revoke action and reset previous_monitored_list to None to start afresh
                 revoke_action()
-                previous_monitored_list = None
+                previous_scaled_monitored_list = None
         else:
-            previous_monitored_list = current_monitored_list
+            previous_scaled_monitored_list = scaled_monitored_list
 
 
     #Transition check over. Safe to update previous violation label.
     if violation_label:
-        global previous_violation_label
         previous_violation_label= True
         print "HIT!!! Label as Violation"
 
@@ -73,10 +81,7 @@ def monitorStore(processing_time):
         take_action()
 
     else:
-        global previous_violation_label
         previous_violation_label = False
-
-
 
     mds.iso_map_dynamic(current_monitored_list, violation_label, transition, closest_monitor_range, action_status)
     end_timestamp = util.get_current_system_timestamp()
@@ -105,7 +110,13 @@ def read_violation_file():
     if os.path.exists(config.application_file_path):
         f_handle = open(config.application_file_path, 'r')
         value = f_handle.readline().split(',')
-        application_timestamp, qos_metric = float(value[0]), float(value[1])
+        try:
+            application_timestamp, qos_metric = float(value[0]), float(value[1])
+        except:
+            print "Exception caught in reading file!!"
+            f_handle.close()
+            return None
+
         f_handle.close()
         return (application_timestamp, qos_metric)
     else:

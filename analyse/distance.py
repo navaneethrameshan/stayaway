@@ -37,9 +37,10 @@ def calculate_distance_list(list1, list2):
     if len(list1) == len(list2):
         sum = 0
         for i in xrange(0,len(list1)):
-            sum += (list2[i]-list1[i])**2
+            sum += (float(list2[i])-float(list1[i]))**2
         dist = sum ** 0.5
     else:
         print "MISMATCH in distance calculation"
 
     return dist
+

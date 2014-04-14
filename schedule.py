@@ -12,4 +12,5 @@ class Schedule:
             previous_processing_time = function( previous_processing_time )
             print "Last processing took %d secs" %previous_processing_time
             time.sleep(self.time_period)
+            print "------------------------------------"
             print "scheduling next run"
